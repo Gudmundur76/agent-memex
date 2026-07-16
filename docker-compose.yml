@@ -8,7 +8,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
-      - "8765:8000"
+      - "8768:8000"
     volumes:
       - memex-data:/app/data
     environment:
@@ -42,4 +42,3 @@ services:
 
 volumes:
   memex-data:
-
