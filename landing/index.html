@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memex — Open Agent Memory Layer</title>
+  <meta name="description" content="Free, persistent memory for any AI agent. Works with Claude, ChatGPT, Perplexity, and any custom agent via MCP or REST API." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --border: #1e1e2e;
+      --accent: #7c6aff;
+      --accent2: #00d4aa;
+      --text: #e8e8f0;
+      --muted: #6b6b80;
+      --code-bg: #0d0d18;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.6; }
+
+    /* Nav */
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(10,10,15,0.92); backdrop-filter: blur(12px); z-index: 100; }
+    .logo { font-weight: 700; font-size: 1.2rem; letter-spacing: -0.02em; color: var(--text); }
+    .logo span { color: var(--accent); }
+    nav a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    nav a:hover { color: var(--text); }
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .btn { background: var(--accent); color: #fff; padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.875rem; font-weight: 500; text-decoration: none; transition: opacity 0.2s, transform 0.1s; }
+    .btn:hover { opacity: 0.88; color: #fff; }
+    .btn:active { transform: scale(0.97); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Hero */
+    .hero { max-width: 900px; margin: 0 auto; padding: 6rem 2rem 4rem; text-align: center; }
+    .badge { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(124,106,255,0.12); border: 1px solid rgba(124,106,255,0.3); color: var(--accent); padding: 0.35rem 0.9rem; border-radius: 100px; font-size: 0.8rem; font-weight: 500; margin-bottom: 1.5rem; }
+    .badge::before { content: ''; width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1.25rem; }
+    h1 em { font-style: normal; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 1.15rem; color: var(--muted); max-width: 600px; margin: 0 auto 2.5rem; }
+    .hero-ctas { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    /* Stats */
+    .stats { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; padding: 2rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 0 2rem; }
+    .stat { text-align: center; }
+    .stat-num { font-size: 1.8rem; font-weight: 700; color: var(--text); }
+    .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+
+    /* How it works */
+    section { max-width: 1000px; margin: 0 auto; padding: 5rem 2rem; }
+    h2 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+    .section-sub { color: var(--muted); margin-bottom: 3rem; }
+
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+    .step { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; transition: border-color 0.2s; }
+    .step:hover { border-color: var(--accent); }
+    .step-num { font-size: 0.75rem; font-weight: 600; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.75rem; }
+    .step h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .step p { font-size: 0.9rem; color: var(--muted); }
+
+    /* Code tabs */
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: -1px; }
+    .tab { padding: 0.5rem 1rem; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 0 12px 12px 12px; padding: 1.5rem; overflow-x: auto; }
+    .code-block pre { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #c9d1d9; line-height: 1.7; }
+    .code-block .comment { color: #6b6b80; }
+    .code-block .string { color: #a5d6ff; }
+    .code-block .key { color: var(--accent2); }
+    .code-block .val { color: #ffa657; }
+
+    /* Platform grid */
+    .platforms { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .platform { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+    .platform-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .platform h4 { font-size: 0.95rem; font-weight: 600; }
+    .platform p { font-size: 0.8rem; color: var(--muted); }
+
+    /* Roadmap */
+    .roadmap { display: grid; gap: 1rem; }
+    .roadmap-item { display: flex; gap: 1.5rem; align-items: flex-start; }
+    .roadmap-phase { min-width: 80px; font-size: 0.75rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; padding-top: 0.2rem; }
+    .roadmap-content h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .roadmap-content p { font-size: 0.875rem; color: var(--muted); }
+    .roadmap-item.done .roadmap-phase { color: var(--accent2); }
+    .roadmap-item.done .roadmap-content h4::after { content: ' ✓'; color: var(--accent2); }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">mem<span>ex</span></div>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#platforms">Platforms</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="https://github.com/Gudmundur76/agent-memex" target="_blank">GitHub</a>
+    <a href="/docs" class="btn btn-outline">API Docs</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="badge">Open Infrastructure · Free Forever</div>
+  <h1>Persistent memory for<br /><em>every AI agent</em></h1>
+  <p>Any agent on any platform — Claude, ChatGPT, Perplexity, or your own — can store and retrieve memories across sessions. Zero setup, three API calls.</p>
+  <div class="hero-ctas">
+    <a href="/docs" class="btn">Read the docs →</a>
+    <a href="https://github.com/Gudmundur76/agent-memex" class="btn btn-outline" target="_blank">View on GitHub</a>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num">3</div><div class="stat-label">API endpoints</div></div>
+  <div class="stat"><div class="stat-num">MCP</div><div class="stat-label">Native support</div></div>
+  <div class="stat"><div class="stat-num">MIT</div><div class="stat-label">License</div></div>
+  <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Free tier</div></div>
+</div>
+
+<section id="how">
+  <h2>How it works</h2>
+  <p class="section-sub">Three operations. Works from any language, any platform.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">Step 01</div>
+      <h3>Remember</h3>
+      <p>Your agent calls <code>POST /v1/memory</code> with any text. Memex embeds it semantically and stores it under your namespace.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">Step 02</div>
+      <h3>Recall</h3>
+      <p>On the next session, call <code>POST /v1/memory/search</code> with a natural language query. Get back the most relevant memories by semantic similarity.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">Step 03</div>
+      <h3>Persist</h3>
+      <p>Memories accumulate over time. Importance scores and access counts keep the most useful memories surfaced. Low-value memories are pruned automatically.</p>
+    </div>
+  </div>
+
+  <br /><br />
+  <div class="tabs">
+    <div class="tab active">curl</div>
+    <div class="tab">Python</div>
+    <div class="tab">MCP</div>
+  </div>
+  <div class="code-block">
+    <pre><span class="comment"># Store a memory</span>
+curl -X POST https://memex.gummi.lt/v1/memory \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -d <span class="string">'{
+    "<span class="key">namespace</span>": <span class="val">"my-agent"</span>,
+    "<span class="key">content</span>": <span class="val">"User prefers concise responses and dark mode"</span>,
+    "<span class="key">importance</span>": <span class="val">0.8</span>
+  }'</span>
+
+<span class="comment"># Recall relevant memories</span>
+curl -X POST https://memex.gummi.lt/v1/memory/search \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -d <span class="string">'{
+    "<span class="key">namespace</span>": <span class="val">"my-agent"</span>,
+    "<span class="key">query</span>": <span class="val">"user interface preferences"</span>
+  }'</span></pre>
+  </div>
+</section>
+
+<section id="platforms">
+  <h2>Works everywhere</h2>
+  <p class="section-sub">Connect once, remember forever — across every platform you use.</p>
+  <div class="platforms">
+    <div class="platform">
+      <div class="platform-icon" style="background:#1a1a2e">🤖</div>
+      <div><h4>Claude.ai</h4><p>Native MCP support</p></div>
+    </div>
+    <div class="platform">
+      <div class="platform-icon" style="background:#1a2a1a">💬</div>
+      <div><h4>ChatGPT</h4><p>Custom Actions (OpenAPI)</p></div>
+    </div>
+    <div class="platform">
+      <div class="platform-icon" style="background:#1a1a2e">🔍</div>
+      <div><h4>Perplexity</h4><p>REST API</p></div>
+    </div>
+    <div class="platform">
+      <div class="platform-icon" style="background:#2a1a1a">⚡</div>
+      <div><h4>Custom agents</h4><p>Any HTTP client</p></div>
+    </div>
+    <div class="platform">
+      <div class="platform-icon" style="background:#1a2a2a">🖥️</div>
+      <div><h4>Cursor / Windsurf</h4><p>MCP server</p></div>
+    </div>
+    <div class="platform">
+      <div class="platform-icon" style="background:#2a2a1a">🔗</div>
+      <div><h4>n8n / Make</h4><p>REST webhooks</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <h2>Roadmap to decentralized memory</h2>
+  <p class="section-sub">Built to evolve toward agent-owned, wallet-verified, on-chain memory.</p>
+  <div class="roadmap">
+    <div class="roadmap-item done">
+      <div class="roadmap-phase">Phase 1<br/>Now</div>
+      <div class="roadmap-content">
+        <h4>Centralized foundation</h4>
+        <p>FastAPI + SQLite, semantic search, MCP server, REST API. Free, open, running today.</p>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-phase">Phase 2<br/>Q4 2026</div>
+      <div class="roadmap-content">
+        <h4>Content-addressed storage</h4>
+        <p>Memory blobs stored on IPFS/Arweave. Your memories become portable — move between providers without losing history.</p>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-phase">Phase 3<br/>Q1 2027</div>
+      <div class="roadmap-content">
+        <h4>Wallet-based identity</h4>
+        <p>Sign memories with your wallet. Namespaces become owned assets. No central authority controls your memory.</p>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-phase">Phase 4<br/>Q2 2027</div>
+      <div class="roadmap-content">
+        <h4>On-chain registry + knowledge marketplace</h4>
+        <p>Discover and license knowledge namespaces. Agents trade expertise. Memory becomes a composable, ownable asset.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Memex is open source (MIT) · Built on <a href="https://gummi.lt">gummi.lt</a> infrastructure · <a href="https://github.com/Gudmundur76/agent-memex">GitHub</a> · <a href="/docs">API Docs</a></p>
+</footer>
+
+</body>
+</html>
+
+*** Add File: /home/ubuntu/memex/landing/nginx.conf
+server {
+    listen 80;
+    server_name memex.gummi.lt;
+
+    # Landing page
+    location = / {
+        root /usr/share/nginx/html;
+        index index.html;
+    }
+    location /static {
+        root /usr/share/nginx/html;
+    }
+
+    # Proxy API
+    location /v1 {
+        proxy_pass http://memex-api:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+    location /docs {
+        proxy_pass http://memex-api:8000;
+    }
+    location /redoc {
+        proxy_pass http://memex-api:8000;
+    }
+    location /health {
+        proxy_pass http://memex-api:8000;
+    }
+    location /openapi.json {
+        proxy_pass http://memex-api:8000;
+    }
+
+    # MCP server
+    location /mcp {
+        proxy_pass http://memex-mcp:8001;
+        proxy_set_header Host $host;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Upgrade $http_upgrade;
+    }
+}
+
