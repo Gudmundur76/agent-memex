@@ -4,286 +4,529 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Memex — Open Agent Memory Layer</title>
-  <meta name="description" content="Free, persistent memory for any AI agent. Works with Claude, ChatGPT, Perplexity, and any custom agent via MCP or REST API." />
+  <meta name="description" content="Persistent memory for every AI agent. Any agent on any platform can store and retrieve memories across sessions. Free, open, three API calls." />
+  <meta property="og:title" content="Memex — Open Agent Memory Layer" />
+  <meta property="og:description" content="Persistent memory for every AI agent. Free forever, open source." />
+  <meta property="og:type" content="website" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --bg: #0a0a0f;
-      --surface: #12121a;
-      --border: #1e1e2e;
-      --accent: #7c6aff;
-      --accent2: #00d4aa;
-      --text: #e8e8f0;
-      --muted: #6b6b80;
-      --code-bg: #0d0d18;
+      --white: #ffffff;
+      --off-white: #fafaf9;
+      --gray-50: #f5f5f3;
+      --gray-100: #ebebea;
+      --gray-200: #d6d6d4;
+      --gray-400: #9b9b99;
+      --gray-600: #6b6b69;
+      --gray-800: #2a2a28;
+      --black: #111110;
+      --accent: #5b4fff;
+      --accent-light: #ede9ff;
+      --accent-mid: #8b7fff;
+      --green: #16a34a;
+      --green-light: #dcfce7;
+      --font: 'Inter', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow: 0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.6; }
 
-    /* Nav */
-    nav { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(10,10,15,0.92); backdrop-filter: blur(12px); z-index: 100; }
-    .logo { font-weight: 700; font-size: 1.2rem; letter-spacing: -0.02em; color: var(--text); }
-    .logo span { color: var(--accent); }
-    nav a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
-    nav a:hover { color: var(--text); }
-    .nav-links { display: flex; gap: 2rem; align-items: center; }
-    .btn { background: var(--accent); color: #fff; padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.875rem; font-weight: 500; text-decoration: none; transition: opacity 0.2s, transform 0.1s; }
-    .btn:hover { opacity: 0.88; color: #fff; }
-    .btn:active { transform: scale(0.97); }
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    html { scroll-behavior: smooth; }
 
-    /* Hero */
-    .hero { max-width: 900px; margin: 0 auto; padding: 6rem 2rem 4rem; text-align: center; }
-    .badge { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(124,106,255,0.12); border: 1px solid rgba(124,106,255,0.3); color: var(--accent); padding: 0.35rem 0.9rem; border-radius: 100px; font-size: 0.8rem; font-weight: 500; margin-bottom: 1.5rem; }
-    .badge::before { content: ''; width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-    h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1.25rem; }
-    h1 em { font-style: normal; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .hero p { font-size: 1.15rem; color: var(--muted); max-width: 600px; margin: 0 auto 2.5rem; }
-    .hero-ctas { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    body {
+      font-family: var(--font);
+      background: var(--white);
+      color: var(--black);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
 
-    /* Stats */
-    .stats { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; padding: 2rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 0 2rem; }
-    .stat { text-align: center; }
-    .stat-num { font-size: 1.8rem; font-weight: 700; color: var(--text); }
-    .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.90);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--gray-100);
+      padding: 0 24px;
+    }
+    .nav-inner {
+      max-width: 1080px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .nav-logo {
+      font-size: 16px; font-weight: 600; color: var(--black);
+      text-decoration: none; letter-spacing: -0.3px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-logo-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent); display: inline-block;
+    }
+    .nav-links {
+      display: flex; align-items: center; gap: 28px; list-style: none;
+    }
+    .nav-links a {
+      font-size: 14px; font-weight: 400; color: var(--gray-600);
+      text-decoration: none; transition: color 0.15s;
+    }
+    .nav-links a:hover { color: var(--black); }
+    .nav-cta {
+      font-size: 14px !important; font-weight: 500 !important;
+      color: var(--white) !important;
+      background: var(--black) !important;
+      padding: 8px 18px; border-radius: 8px;
+      transition: background 0.15s !important;
+    }
+    .nav-cta:hover { background: var(--gray-800) !important; }
 
-    /* How it works */
-    section { max-width: 1000px; margin: 0 auto; padding: 5rem 2rem; }
-    h2 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
-    .section-sub { color: var(--muted); margin-bottom: 3rem; }
+    /* HERO */
+    .hero {
+      max-width: 1080px; margin: 0 auto;
+      padding: 96px 24px 80px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 64px; align-items: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--green-light); color: var(--green);
+      font-size: 12px; font-weight: 500;
+      padding: 4px 12px; border-radius: 100px;
+      margin-bottom: 24px;
+    }
+    .hero-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0;
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .hero h1 {
+      font-size: clamp(34px, 4vw, 50px);
+      font-weight: 600; line-height: 1.1;
+      letter-spacing: -1.5px; color: var(--black);
+      margin-bottom: 20px;
+    }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .hero p {
+      font-size: 17px; color: var(--gray-600);
+      line-height: 1.65; margin-bottom: 36px; max-width: 440px;
+    }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--black); color: var(--white);
+      font-size: 14px; font-weight: 500;
+      padding: 12px 22px; border-radius: var(--radius-sm);
+      text-decoration: none; transition: background 0.15s, transform 0.1s;
+    }
+    .btn-primary:hover { background: var(--gray-800); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--white); color: var(--black);
+      font-size: 14px; font-weight: 500;
+      padding: 12px 22px; border-radius: var(--radius-sm);
+      text-decoration: none; border: 1px solid var(--gray-200);
+      transition: border-color 0.15s, transform 0.1s;
+    }
+    .btn-secondary:hover { border-color: var(--gray-400); }
+    .btn-secondary:active { transform: scale(0.98); }
 
-    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
-    .step { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; transition: border-color 0.2s; }
-    .step:hover { border-color: var(--accent); }
-    .step-num { font-size: 0.75rem; font-weight: 600; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.75rem; }
-    .step h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; }
-    .step p { font-size: 0.9rem; color: var(--muted); }
+    /* HERO CODE CARD */
+    .hero-card {
+      background: var(--off-white);
+      border: 1px solid var(--gray-100);
+      border-radius: 16px; overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .hero-card-header {
+      display: flex; align-items: center; gap: 6px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gray-100);
+      background: var(--white);
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+    .card-label {
+      margin-left: auto; font-size: 11px; font-weight: 500;
+      color: var(--gray-400); font-family: var(--mono);
+    }
+    .hero-card-body {
+      padding: 20px 18px;
+      font-family: var(--mono); font-size: 12px;
+      line-height: 1.85; color: var(--gray-800);
+    }
+    .c-comment { color: var(--gray-400); }
+    .c-key { color: var(--accent); }
+    .c-str { color: var(--green); }
+    .c-url { color: var(--gray-600); }
+    .card-divider { height: 1px; background: var(--gray-100); margin: 14px 0; }
+    .hero-card-result {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 12px 18px;
+      background: var(--accent-light);
+      border-top: 1px solid #ddd6ff;
+    }
+    .result-check { font-size: 12px; color: var(--accent); margin-top: 2px; }
+    .result-text { font-family: var(--mono); font-size: 11px; color: var(--accent); line-height: 1.6; }
 
-    /* Code tabs */
-    .tabs { display: flex; gap: 0.5rem; margin-bottom: -1px; }
-    .tab { padding: 0.5rem 1rem; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
-    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-    .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 0 12px 12px 12px; padding: 1.5rem; overflow-x: auto; }
-    .code-block pre { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #c9d1d9; line-height: 1.7; }
-    .code-block .comment { color: #6b6b80; }
-    .code-block .string { color: #a5d6ff; }
-    .code-block .key { color: var(--accent2); }
-    .code-block .val { color: #ffa657; }
+    /* STATS */
+    .stats-bar {
+      background: var(--gray-50);
+      border-top: 1px solid var(--gray-100);
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .stats-inner {
+      max-width: 1080px; margin: 0 auto;
+      padding: 28px 24px;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+    }
+    .stat {
+      padding: 0 24px;
+      border-right: 1px solid var(--gray-200);
+    }
+    .stat:first-child { padding-left: 0; }
+    .stat:last-child { border-right: none; }
+    .stat-value {
+      font-size: 26px; font-weight: 600;
+      letter-spacing: -1px; color: var(--black); line-height: 1;
+    }
+    .stat-label { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
 
-    /* Platform grid */
-    .platforms { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-    .platform { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
-    .platform-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-    .platform h4 { font-size: 0.95rem; font-weight: 600; }
-    .platform p { font-size: 0.8rem; color: var(--muted); }
+    /* SECTIONS */
+    .section { padding: 80px 24px; }
+    .section-inner { max-width: 1080px; margin: 0 auto; }
+    .section-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: clamp(24px, 2.8vw, 34px);
+      font-weight: 600; letter-spacing: -0.8px;
+      color: var(--black); margin-bottom: 14px;
+    }
+    .section-sub {
+      font-size: 16px; color: var(--gray-600);
+      max-width: 520px; line-height: 1.65; margin-bottom: 44px;
+    }
 
-    /* Roadmap */
-    .roadmap { display: grid; gap: 1rem; }
-    .roadmap-item { display: flex; gap: 1.5rem; align-items: flex-start; }
-    .roadmap-phase { min-width: 80px; font-size: 0.75rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; padding-top: 0.2rem; }
-    .roadmap-content h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
-    .roadmap-content p { font-size: 0.875rem; color: var(--muted); }
-    .roadmap-item.done .roadmap-phase { color: var(--accent2); }
-    .roadmap-item.done .roadmap-content h4::after { content: ' ✓'; color: var(--accent2); }
+    /* STEPS */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .step {
+      background: var(--white);
+      border: 1px solid var(--gray-100);
+      border-radius: var(--radius); padding: 24px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .step:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+    .step-num {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+      color: var(--gray-400); font-family: var(--mono); margin-bottom: 14px;
+    }
+    .step-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: var(--accent-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; margin-bottom: 14px;
+    }
+    .step h3 { font-size: 15px; font-weight: 600; color: var(--black); margin-bottom: 8px; }
+    .step p { font-size: 13.5px; color: var(--gray-600); line-height: 1.6; }
+    .step-code {
+      margin-top: 14px;
+      background: var(--gray-50); border: 1px solid var(--gray-100);
+      border-radius: 6px; padding: 10px 12px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--gray-600); line-height: 1.7;
+    }
 
-    /* Footer */
-    footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
-    footer a { color: var(--muted); text-decoration: none; }
-    footer a:hover { color: var(--text); }
+    /* PLATFORMS */
+    .section-alt { background: var(--gray-50); border-top: 1px solid var(--gray-100); border-bottom: 1px solid var(--gray-100); }
+    .platforms-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .platform {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 18px;
+      background: var(--white); border: 1px solid var(--gray-100);
+      border-radius: var(--radius); box-shadow: var(--shadow-sm);
+      transition: border-color 0.15s;
+    }
+    .platform:hover { border-color: var(--gray-200); }
+    .platform-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: var(--gray-50);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; flex-shrink: 0;
+    }
+    .platform-name { font-size: 14px; font-weight: 500; color: var(--black); }
+    .platform-desc { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+
+    /* ROADMAP */
+    .roadmap-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .phase {
+      background: var(--white); border: 1px solid var(--gray-100);
+      border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow-sm);
+    }
+    .phase.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--shadow-sm); }
+    .phase-tag {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 100px; margin-bottom: 12px;
+    }
+    .phase.active .phase-tag { background: var(--accent-light); color: var(--accent); }
+    .phase:not(.active) .phase-tag { background: var(--gray-100); color: var(--gray-600); }
+    .phase h3 { font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 8px; }
+    .phase p { font-size: 13px; color: var(--gray-600); line-height: 1.55; }
+    .phase-date { font-size: 11px; color: var(--gray-400); font-family: var(--mono); margin-top: 12px; }
+
+    /* CTA */
+    .cta-section { background: var(--black); }
+    .cta-section .section-inner { max-width: 640px; text-align: center; }
+    .cta-section .section-label { color: var(--accent-mid); }
+    .cta-section .section-title { color: var(--white); }
+    .cta-section .section-sub { color: rgba(255,255,255,0.45); margin: 0 auto 36px; }
+    .cta-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-white {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--white); color: var(--black);
+      font-size: 14px; font-weight: 500;
+      padding: 12px 22px; border-radius: var(--radius-sm);
+      text-decoration: none; transition: opacity 0.15s;
+    }
+    .btn-white:hover { opacity: 0.9; }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: transparent; color: rgba(255,255,255,0.7);
+      font-size: 14px; font-weight: 500;
+      padding: 12px 22px; border-radius: var(--radius-sm);
+      text-decoration: none; border: 1px solid rgba(255,255,255,0.15);
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.35); color: var(--white); }
+
+    /* FOOTER */
+    footer {
+      background: var(--white); border-top: 1px solid var(--gray-100);
+      padding: 24px;
+    }
+    .footer-inner {
+      max-width: 1080px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer-brand { font-size: 14px; font-weight: 600; color: var(--black); text-decoration: none; }
+    .footer-links { display: flex; gap: 20px; list-style: none; }
+    .footer-links a { font-size: 13px; color: var(--gray-400); text-decoration: none; transition: color 0.15s; }
+    .footer-links a:hover { color: var(--black); }
+    .footer-copy { font-size: 12px; color: var(--gray-400); }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .hero { grid-template-columns: 1fr; gap: 40px; padding: 56px 20px 40px; }
+      .hero-card { display: none; }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+      .stat { border-right: none; padding: 0; }
+      .steps { grid-template-columns: 1fr; }
+      .platforms-grid { grid-template-columns: repeat(2, 1fr); }
+      .roadmap-grid { grid-template-columns: repeat(2, 1fr); }
+      .nav-links { display: none; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+    }
   </style>
 </head>
 <body>
 
 <nav>
-  <div class="logo">mem<span>ex</span></div>
-  <div class="nav-links">
-    <a href="#how">How it works</a>
-    <a href="#platforms">Platforms</a>
-    <a href="#roadmap">Roadmap</a>
-    <a href="https://github.com/Gudmundur76/agent-memex" target="_blank">GitHub</a>
-    <a href="/docs" class="btn btn-outline">API Docs</a>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <span class="nav-logo-dot"></span>
+      memex
+    </a>
+    <ul class="nav-links">
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#platforms">Platforms</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+      <li><a href="https://github.com/Gudmundur76/agent-memex" target="_blank">GitHub</a></li>
+      <li><a href="/docs" class="nav-cta">API Docs</a></li>
+    </ul>
   </div>
 </nav>
 
 <div class="hero">
-  <div class="badge">Open Infrastructure · Free Forever</div>
-  <h1>Persistent memory for<br /><em>every AI agent</em></h1>
-  <p>Any agent on any platform — Claude, ChatGPT, Perplexity, or your own — can store and retrieve memories across sessions. Zero setup, three API calls.</p>
-  <div class="hero-ctas">
-    <a href="/docs" class="btn">Read the docs →</a>
-    <a href="https://github.com/Gudmundur76/agent-memex" class="btn btn-outline" target="_blank">View on GitHub</a>
+  <div>
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Live &middot; Free forever
+    </div>
+    <h1>Persistent memory for<br /><em>every AI agent</em></h1>
+    <p>Any agent on any platform &mdash; Claude, ChatGPT, Perplexity, or your own &mdash; stores and retrieves memories across sessions. Zero setup. Three API calls.</p>
+    <div class="hero-actions">
+      <a href="/docs" class="btn-primary">
+        Read the docs
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="https://github.com/Gudmundur76/agent-memex" target="_blank" class="btn-secondary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-card">
+    <div class="hero-card-header">
+      <span class="dot dot-r"></span>
+      <span class="dot dot-y"></span>
+      <span class="dot dot-g"></span>
+      <span class="card-label">terminal</span>
+    </div>
+    <div class="hero-card-body">
+      <span class="c-comment"># Store a memory</span><br />
+      curl -X POST <span class="c-url">https://memex.gummi.lt/v1/memory</span> \<br />
+      &nbsp;&nbsp;-d '{<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="c-key">"namespace"</span>: <span class="c-str">"my-agent"</span>,<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="c-key">"content"</span>: <span class="c-str">"User prefers dark mode"</span><br />
+      &nbsp;&nbsp;}'
+      <div class="card-divider"></div>
+      <span class="c-comment"># Search memories</span><br />
+      curl -X POST <span class="c-url">https://memex.gummi.lt/v1/memory/search</span> \<br />
+      &nbsp;&nbsp;-d '{<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="c-key">"namespace"</span>: <span class="c-str">"my-agent"</span>,<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="c-key">"query"</span>: <span class="c-str">"user preferences"</span><br />
+      &nbsp;&nbsp;}'
+    </div>
+    <div class="hero-card-result">
+      <span class="result-check">&#10003;</span>
+      <span class="result-text">{ "memories": [{ "content": "User prefers dark mode", "score": 0.97 }] }</span>
+    </div>
   </div>
 </div>
 
-<div class="stats">
-  <div class="stat"><div class="stat-num">3</div><div class="stat-label">API endpoints</div></div>
-  <div class="stat"><div class="stat-num">MCP</div><div class="stat-label">Native support</div></div>
-  <div class="stat"><div class="stat-num">MIT</div><div class="stat-label">License</div></div>
-  <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Free tier</div></div>
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat"><div class="stat-value">3</div><div class="stat-label">API endpoints</div></div>
+    <div class="stat"><div class="stat-value">MCP</div><div class="stat-label">Native support</div></div>
+    <div class="stat"><div class="stat-value">MIT</div><div class="stat-label">Open source</div></div>
+    <div class="stat"><div class="stat-value">&infin;</div><div class="stat-label">Free tier</div></div>
+  </div>
 </div>
 
-<section id="how">
-  <h2>How it works</h2>
-  <p class="section-sub">Three operations. Works from any language, any platform.</p>
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">Step 01</div>
-      <h3>Remember</h3>
-      <p>Your agent calls <code>POST /v1/memory</code> with any text. Memex embeds it semantically and stores it under your namespace.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">Step 02</div>
-      <h3>Recall</h3>
-      <p>On the next session, call <code>POST /v1/memory/search</code> with a natural language query. Get back the most relevant memories by semantic similarity.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">Step 03</div>
-      <h3>Persist</h3>
-      <p>Memories accumulate over time. Importance scores and access counts keep the most useful memories surfaced. Low-value memories are pruned automatically.</p>
-    </div>
-  </div>
-
-  <br /><br />
-  <div class="tabs">
-    <div class="tab active">curl</div>
-    <div class="tab">Python</div>
-    <div class="tab">MCP</div>
-  </div>
-  <div class="code-block">
-    <pre><span class="comment"># Store a memory</span>
-curl -X POST https://memex.gummi.lt/v1/memory \
-  -H <span class="string">"Content-Type: application/json"</span> \
-  -d <span class="string">'{
-    "<span class="key">namespace</span>": <span class="val">"my-agent"</span>,
-    "<span class="key">content</span>": <span class="val">"User prefers concise responses and dark mode"</span>,
-    "<span class="key">importance</span>": <span class="val">0.8</span>
-  }'</span>
-
-<span class="comment"># Recall relevant memories</span>
-curl -X POST https://memex.gummi.lt/v1/memory/search \
-  -H <span class="string">"Content-Type: application/json"</span> \
-  -d <span class="string">'{
-    "<span class="key">namespace</span>": <span class="val">"my-agent"</span>,
-    "<span class="key">query</span>": <span class="val">"user interface preferences"</span>
-  }'</span></pre>
-  </div>
-</section>
-
-<section id="platforms">
-  <h2>Works everywhere</h2>
-  <p class="section-sub">Connect once, remember forever — across every platform you use.</p>
-  <div class="platforms">
-    <div class="platform">
-      <div class="platform-icon" style="background:#1a1a2e">🤖</div>
-      <div><h4>Claude.ai</h4><p>Native MCP support</p></div>
-    </div>
-    <div class="platform">
-      <div class="platform-icon" style="background:#1a2a1a">💬</div>
-      <div><h4>ChatGPT</h4><p>Custom Actions (OpenAPI)</p></div>
-    </div>
-    <div class="platform">
-      <div class="platform-icon" style="background:#1a1a2e">🔍</div>
-      <div><h4>Perplexity</h4><p>REST API</p></div>
-    </div>
-    <div class="platform">
-      <div class="platform-icon" style="background:#2a1a1a">⚡</div>
-      <div><h4>Custom agents</h4><p>Any HTTP client</p></div>
-    </div>
-    <div class="platform">
-      <div class="platform-icon" style="background:#1a2a2a">🖥️</div>
-      <div><h4>Cursor / Windsurf</h4><p>MCP server</p></div>
-    </div>
-    <div class="platform">
-      <div class="platform-icon" style="background:#2a2a1a">🔗</div>
-      <div><h4>n8n / Make</h4><p>REST webhooks</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="roadmap">
-  <h2>Roadmap to decentralized memory</h2>
-  <p class="section-sub">Built to evolve toward agent-owned, wallet-verified, on-chain memory.</p>
-  <div class="roadmap">
-    <div class="roadmap-item done">
-      <div class="roadmap-phase">Phase 1<br/>Now</div>
-      <div class="roadmap-content">
-        <h4>Centralized foundation</h4>
-        <p>FastAPI + SQLite, semantic search, MCP server, REST API. Free, open, running today.</p>
+<div class="section" id="how">
+  <div class="section-inner">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">Three operations. Any language.</h2>
+    <p class="section-sub">Works from curl, Python, JavaScript, or any MCP client. No SDK required.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-icon">&#128190;</div>
+        <h3>Remember</h3>
+        <p>POST any text to <code>/v1/memory</code> with a namespace. Memex embeds it semantically and stores it.</p>
+        <div class="step-code">POST /v1/memory<br />{ "namespace": "...", "content": "..." }</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-icon">&#128269;</div>
+        <h3>Recall</h3>
+        <p>Search with a natural language query. Get back the most relevant memories ranked by semantic similarity.</p>
+        <div class="step-code">POST /v1/memory/search<br />{ "namespace": "...", "query": "..." }</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-icon">&#128200;</div>
+        <h3>Persist</h3>
+        <p>Memories accumulate over time. Importance scores keep the most useful ones surfaced. Low-value memories are pruned automatically.</p>
+        <div class="step-code">GET /v1/memory/list<br />{ "namespace": "...", "limit": 20 }</div>
       </div>
     </div>
-    <div class="roadmap-item">
-      <div class="roadmap-phase">Phase 2<br/>Q4 2026</div>
-      <div class="roadmap-content">
-        <h4>Content-addressed storage</h4>
-        <p>Memory blobs stored on IPFS/Arweave. Your memories become portable — move between providers without losing history.</p>
-      </div>
+  </div>
+</div>
+
+<div class="section section-alt" id="platforms">
+  <div class="section-inner">
+    <div class="section-label">Platforms</div>
+    <h2 class="section-title">Works everywhere agents run</h2>
+    <p class="section-sub">Connect once, remember forever &mdash; across every platform you use.</p>
+    <div class="platforms-grid">
+      <div class="platform"><div class="platform-icon">&#129302;</div><div><div class="platform-name">Claude.ai</div><div class="platform-desc">Native MCP support</div></div></div>
+      <div class="platform"><div class="platform-icon">&#128172;</div><div><div class="platform-name">ChatGPT</div><div class="platform-desc">Custom Actions (OpenAPI)</div></div></div>
+      <div class="platform"><div class="platform-icon">&#128269;</div><div><div class="platform-name">Perplexity</div><div class="platform-desc">REST API</div></div></div>
+      <div class="platform"><div class="platform-icon">&#9889;</div><div><div class="platform-name">Custom agents</div><div class="platform-desc">Any HTTP client</div></div></div>
+      <div class="platform"><div class="platform-icon">&#128187;</div><div><div class="platform-name">Cursor / Windsurf</div><div class="platform-desc">MCP server</div></div></div>
+      <div class="platform"><div class="platform-icon">&#128279;</div><div><div class="platform-name">n8n / Make</div><div class="platform-desc">REST webhooks</div></div></div>
     </div>
-    <div class="roadmap-item">
-      <div class="roadmap-phase">Phase 3<br/>Q1 2027</div>
-      <div class="roadmap-content">
-        <h4>Wallet-based identity</h4>
+  </div>
+</div>
+
+<div class="section" id="roadmap">
+  <div class="section-inner">
+    <div class="section-label">Roadmap</div>
+    <h2 class="section-title">Built to go decentralized</h2>
+    <p class="section-sub">Centralized today, agent-owned tomorrow. The web3 primitives are already in the schema.</p>
+    <div class="roadmap-grid">
+      <div class="phase active">
+        <span class="phase-tag">Live now</span>
+        <h3>Centralized foundation</h3>
+        <p>FastAPI + SQLite, semantic search, MCP server, REST API. Free and running today.</p>
+        <div class="phase-date">Phase 1</div>
+      </div>
+      <div class="phase">
+        <span class="phase-tag">Q4 2026</span>
+        <h3>Content-addressed storage</h3>
+        <p>Memory blobs on IPFS/Arweave. Your memories become portable &mdash; move between providers without losing history.</p>
+        <div class="phase-date">Phase 2</div>
+      </div>
+      <div class="phase">
+        <span class="phase-tag">Q1 2027</span>
+        <h3>Wallet-based identity</h3>
         <p>Sign memories with your wallet. Namespaces become owned assets. No central authority controls your memory.</p>
+        <div class="phase-date">Phase 3</div>
       </div>
-    </div>
-    <div class="roadmap-item">
-      <div class="roadmap-phase">Phase 4<br/>Q2 2027</div>
-      <div class="roadmap-content">
-        <h4>On-chain registry + knowledge marketplace</h4>
+      <div class="phase">
+        <span class="phase-tag">Q2 2027</span>
+        <h3>On-chain registry</h3>
         <p>Discover and license knowledge namespaces. Agents trade expertise. Memory becomes a composable, ownable asset.</p>
+        <div class="phase-date">Phase 4</div>
       </div>
     </div>
   </div>
-</section>
+</div>
+
+<div class="section cta-section">
+  <div class="section-inner">
+    <div class="section-label">Get started</div>
+    <h2 class="section-title">Free. Open. Running now.</h2>
+    <p class="section-sub">No signup required. Pick up your namespace and start storing memories in under a minute.</p>
+    <div class="cta-actions">
+      <a href="/docs" class="btn-white">
+        Read the docs
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="https://github.com/Gudmundur76/agent-memex" target="_blank" class="btn-ghost">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        Star on GitHub
+      </a>
+    </div>
+  </div>
+</div>
 
 <footer>
-  <p>Memex is open source (MIT) · Built on <a href="https://gummi.lt">gummi.lt</a> infrastructure · <a href="https://github.com/Gudmundur76/agent-memex">GitHub</a> · <a href="/docs">API Docs</a></p>
+  <div class="footer-inner">
+    <a href="/" class="footer-brand">memex</a>
+    <ul class="footer-links">
+      <li><a href="https://github.com/Gudmundur76/agent-memex" target="_blank">GitHub</a></li>
+      <li><a href="/docs">API Docs</a></li>
+      <li><a href="https://gummi.lt" target="_blank">gummi.lt</a></li>
+    </ul>
+    <span class="footer-copy">MIT License &middot; Free forever</span>
+  </div>
 </footer>
 
 </body>
 </html>
-
-*** Add File: /home/ubuntu/memex/landing/nginx.conf
-server {
-    listen 80;
-    server_name memex.gummi.lt;
-
-    # Landing page
-    location = / {
-        root /usr/share/nginx/html;
-        index index.html;
-    }
-    location /static {
-        root /usr/share/nginx/html;
-    }
-
-    # Proxy API
-    location /v1 {
-        proxy_pass http://memex-api:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-    location /docs {
-        proxy_pass http://memex-api:8000;
-    }
-    location /redoc {
-        proxy_pass http://memex-api:8000;
-    }
-    location /health {
-        proxy_pass http://memex-api:8000;
-    }
-    location /openapi.json {
-        proxy_pass http://memex-api:8000;
-    }
-
-    # MCP server
-    location /mcp {
-        proxy_pass http://memex-mcp:8001;
-        proxy_set_header Host $host;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Upgrade $http_upgrade;
-    }
-}
-
